@@ -1,73 +1,190 @@
-# Welcome to your Lovable project
+# KitchenPulse CRM
 
-## Project info
+A modern kitchen management system built with React, TypeScript, Firebase, and Tailwind CSS. Features real-time order tracking, menu management, and sales analytics.
 
-**URL**: https://lovable.dev/projects/3fa05192-0f70-4abc-8f48-53dc7feeed7d
+## 🚀 Features
 
-## How can I edit this code?
+### Customer Portal
+- **Menu Browsing**: View available food items by category (Main, Drinks, Salads, Bread)
+- **Order Placement**: Add items to cart and place orders with special instructions
+- **Real-time Tracking**: Track order status from pending → cooking → ready → delivered
+- **Google Authentication**: Secure sign-in with Google accounts
 
-There are several ways of editing your application.
+### Chef Dashboard (No Authentication Required)
+- **Order Management**: View and update order status in real-time
+- **Menu Control**: Add, edit, delete, and toggle availability of menu items
+- **Daily Analytics**: Track sales, revenue, and category performance
+- **Real-time Updates**: Automatic updates using Firestore listeners
 
-**Use Lovable**
+## 🛠 Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3fa05192-0f70-4abc-8f48-53dc7feeed7d) and start prompting.
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **State Management**: Zustand
+- **Backend**: Firebase (Firestore, Authentication)
+- **Charts**: Recharts
+- **Real-time**: Firestore onSnapshot listeners
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📦 Installation
 
-**Use your preferred IDE**
+1. **Clone the repository**
+```bash
+git clone <your-repo-url>
+cd kitchen-pulse-crm
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. **Install dependencies**
+```bash
+npm install
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. **Configure Firebase**
+   - Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+   - Enable Authentication (Google provider)
+   - Create Firestore database
+   - Copy your config to `src/lib/firebase.ts`:
 
-Follow these steps:
+```typescript
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "your-app-id"
+};
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. **Run the development server**
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🗄 Firestore Collections
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### `foods`
+```typescript
+{
+  title: string;
+  price: number;
+  category: "main" | "drink" | "salad" | "bread";
+  isAvailable: boolean;
+  description?: string;
+}
+```
 
-**Use GitHub Codespaces**
+### `orders`
+```typescript
+{
+  userId: string;
+  items: Array<{
+    foodId: string;
+    qty: number;
+    price: number;
+  }>;
+  status: "pending" | "cooking" | "ready" | "delivered";
+  createdAt: Timestamp;
+  totalAmount: number;
+  customerNotes?: string;
+}
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### `users`
+```typescript
+{
+  displayName: string;
+  email: string;
+  photoURL?: string;
+}
+```
 
-## What technologies are used for this project?
+## 🎨 Design System
 
-This project is built with:
+The app uses a warm, kitchen-inspired design system with:
+- **Primary**: Vibrant orange (#FF7A00)
+- **Accent**: Golden yellow (#FFB347)
+- **Chef**: Dark brown for admin elements
+- **Success**: Green for completed actions
+- **Warning**: Amber for alerts
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔐 Security Rules
 
-## How can I deploy this project?
+Basic Firestore security rules (expand as needed):
 
-Simply open [Lovable](https://lovable.dev/projects/3fa05192-0f70-4abc-8f48-53dc7feeed7d) and click on Share -> Publish.
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Foods are readable by all, writable by authenticated users (for demo)
+    match /foods/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Orders are readable by owner or any authenticated user (for chef dashboard)
+    match /orders/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 🚀 Deployment
 
-Yes, you can!
+Build for production:
+```bash
+npm run build
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Deploy to Firebase Hosting:
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init hosting
+firebase deploy
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📱 Usage
+
+1. **Customer Flow**:
+   - Sign in with Google
+   - Browse menu by category
+   - Add items to cart
+   - Place order with optional notes
+   - Track order status in real-time
+
+2. **Chef Flow**:
+   - Access chef dashboard (no login required)
+   - View incoming orders
+   - Update order status (pending → cooking → ready → delivered)
+   - Manage menu items (add/edit/delete)
+   - View daily sales statistics
+
+## 🔄 Real-time Features
+
+- Orders update instantly across all connected clients
+- Menu changes reflect immediately
+- Order status notifications
+- Live analytics dashboard
+
+## 🎯 Future Enhancements
+
+- Push notifications via Firebase Cloud Messaging
+- Image upload for menu items
+- Advanced analytics and reporting
+- Multi-restaurant support
+- Mobile app with React Native
+
+## 📝 License
+
+MIT License - feel free to use this project as a starting point for your own kitchen management system!
+
+---
+
+**Note**: Remember to configure your Firebase credentials before running the application. The app includes demo data seeding capabilities in the hooks.
